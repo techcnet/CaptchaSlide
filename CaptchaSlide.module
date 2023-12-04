@@ -1,0 +1,157 @@
+<?php namespace ProcessWire;
+
+/**
+ * Captcha Slide for ProcessWire
+ * ...
+ *
+ * @author tech-c.net
+ * @license Licensed under GNU/GPL v2
+ * @link https://tech-c.net/posts/...
+ * @version 1.0.0
+ * 
+ * @see Forum Thread: 
+ * @see https://tech-c.net/donation/
+ */
+
+class CaptchaSlide extends Process{
+  const moduleVersion = '100';
+  /**
+   * Return information about this module
+   */
+  public static function getModuleInfo() {
+    return array(
+      'title' => 'Captcha Slide',
+      'summary' => 'Captcha Slide for ProcessWire',
+      'href' => 'https://tech-c.net/',
+      'author' => 'tech-c.net',
+      'version' => 100,
+      'icon' => 'download',
+      'autoload' => true,
+      'singular' => true);
+  }
+  /**
+   * Instance of module
+   */
+  public function __construct() {
+
+  }
+  /**
+   * Called only when the module is installed
+   */
+  public function ___install () {
+
+  }
+  /**
+   * Called only when the module is uninstalled
+   */
+  public function ___uninstall () {
+
+  }
+  /**
+   * Initialization function called before any execute functions
+   */
+  public function init() {
+    $this->addHookBefore('ProcessPageView::pageNotFound', $this, 'captchaFile');
+    $this->addHookAfter('Page::render', $this, 'addScripts');
+  }
+  /**
+   * Find out the IP address
+   */
+  private function get_ip() {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    if (!empty($ip)) {
+      return $ip;
+    } else {
+      $ip = getenv("REMOTE_ADDR");
+      if (!empty($ip)) {
+        return $ip;
+      } else {
+        return '0.0.0.0';
+      }
+    }
+  }
+  /**
+   * Output the download
+   */
+  public function captchaFile(HookEvent $event) {
+    $virtual_captcha = $this->virtual_captcha;
+    if ($virtual_captcha == '') {
+      $virtual_captcha = 'captcha';
+    }
+    if (strpos($event->arguments[1], '/'.$virtual_captcha.'/') === false) {
+       return;
+    }
+
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+    header('Pragma: no-cache');
+
+    require_once(__DIR__.'/SlideCaptcha/SlideCaptchaClass.php');
+
+    if (isset($_GET['action'])) {
+      if ($_GET['action'] == 'get') {
+        $slideCaptcha = new \SlideCaptcha();
+        $slideCaptcha->build();
+      }
+      if ($_GET['action'] == 'check') {
+        $slideCaptcha = new \SlideCaptcha();
+        if (isset($_GET['x'])) {
+          $x = $_GET['x'];
+          if (isset($_SESSION['SlideCaptchaX'])) {
+            $SlideCaptchaX = $_SESSION['SlideCaptchaX'];
+          } else {
+            $SlideCaptchaX = 0;
+          }
+          if (ctype_digit(strval($x))) {
+            if ($slideCaptcha->check($x, 3)) {
+              $_SESSION['SlideCaptchaOk'] = 'ok';
+              echo 'ok';
+              if ($this->logging == 1) {
+                wire('log')->save($this->className, 'Solved: '.$this->get_ip());
+              }
+            } else {
+              echo 'error';
+              if ($this->logging == 1) {
+                wire('log')->save($this->className, 'Error: '.$this->get_ip());
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    exit(0);
+  }
+
+  public function addScripts($event) {
+		$page = $event->object; 
+		if ($page->template == 'admin') return;    
+
+    if ((isset($this->page_list)) && (is_array($this->page_list))) {
+      switch ($this->page_include) {
+        case 1:
+          if (!in_array($page->id, $this->page_list)) {
+            //wire('log')->save($this->className, 'Excluded: '.$page->id);
+            return;
+          }
+          break;
+        case 2:
+          if (in_array($page->id, $this->page_list)) {
+            //wire('log')->save($this->className, 'Excluded: '.$page->id);
+            return;
+          }
+          break;
+        case 3:
+          return;
+          break;
+      }
+    }
+
+    $css = '<link rel="stylesheet" type="text/css" href="'.$this->config()->urls->siteModules.$this->className.'/captcha.css?v='.self::moduleVersion.'" />';
+    $js = '<script src="'.$this->config()->urls->siteModules.$this->className.'/captcha.js?v='.self::moduleVersion.'"></script>';
+    
+    $ret = $event->return;
+    $ret = str_replace('</body>', $js.'</body>', $ret);
+		$event->return = str_replace('</head>', $css.'</head>', $ret);
+	}
+}
