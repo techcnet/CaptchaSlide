@@ -9,7 +9,7 @@
  * @link https://tech-c.net/posts/slide-captcha-module-for-processwire/
  * @version 1.0.4
  * 
- * @see Forum Thread: https://processwire.com/talk/topic/xxxxx-slide-captcha-module-for-processwire/
+ * @see Forum Thread: https://processwire.com/talk/topic/30217-slide-captcha-for-processwire/
  * @see Donate: https://tech-c.net/donation/
  */
 
