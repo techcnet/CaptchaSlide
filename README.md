@@ -123,13 +123,13 @@ The settings for this module are located in the menu Modules=>Configure=>Captcha
 ### Filename
 Filename which must not exist in the root directory and also not represents a page. The default filename resolves in to the following URL: https://domain.tld/captcha/. This URL receives the information from the client side JavaScript.
 
-Tolerance
+### Tolerance
 Specifies a tolerance in order to offer better user experience. A tolerance of 3 means +- 3 pixel tolerance (3 recommended).
 
-Logging
+### Logging
 Logs unsolved and solved Captcha attempts in the ProcessWire system logs.
 
-Pages
+### Pages
 The JavaScript and CSS for the Captcha will be included into the following pages.
 
 ## Photos
