@@ -81,7 +81,7 @@ class CaptchaSlideConfig extends ModuleConfig {
     $field->value .= '</p>';
 
     $field->value .= '<p style="text-align:center">';
-    $field->value .= 'CaptchaSlide @ <a href="https://modules.processwire.com/modules/captcha-slide/">processwire.com</a><br />';
+    $field->value .= 'CaptchaSlide @ <a href="https://processwire.com/modules/captcha-slide/">processwire.com</a><br />';
     $field->value .= 'CaptchaSlide @ <a href="https://github.com/techcnet/CaptchaSlide">github.com</a><br />';
     $field->value .= 'CaptchaSlide @ <a href="https://tech-c.net/posts/slide-captcha-module-for-processwire/">tech-c.net</a>';
     $field->value .= '</p>';
