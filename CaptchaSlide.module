@@ -1,0 +1,145 @@
+<?php namespace ProcessWire;
+
+/**
+ * Slide Captcha for ProcessWire
+ * This is a test, used to determine, whether the user is human, in order to prevent bot and spam attacks.
+ *
+ * @author tech-c.net
+ * @license Licensed under GNU/GPL v2
+ * @link https://tech-c.net/posts/slide-captcha-module-for-processwire/
+ * @version 1.0.4
+ * 
+ * @see Forum Thread: https://processwire.com/talk/topic/xxxxx-slide-captcha-module-for-processwire/
+ * @see Donate: https://tech-c.net/donation/
+ */
+
+class CaptchaSlide extends Process{
+  const moduleVersion = '104';
+  /**
+   * Return information about this module
+   */
+  public static function getModuleInfo() {
+    return array(
+      'title' => 'Slide Captcha',
+      'summary' => 'Slide Captcha for ProcessWire',
+      'href' => 'https://tech-c.net/',
+      'author' => 'tech-c.net',
+      'version' => 104,
+      'icon' => 'puzzle-piece',
+      'autoload' => true,
+      'singular' => true);
+  }
+  /**
+   * Initialization function called before any execute functions
+   */
+  public function init() {
+    $this->addHookBefore('ProcessPageView::pageNotFound', $this, 'captchaFile');
+    $this->addHookAfter('Page::render', $this, 'addScripts');
+  }
+  /**
+   * Find out the IP address
+   */
+  private function get_ip() {
+    $ip = $_SERVER['REMOTE_ADDR'];
+    if (!empty($ip)) {
+      return $ip;
+    } else {
+      $ip = getenv("REMOTE_ADDR");
+      if (!empty($ip)) {
+        return $ip;
+      } else {
+        return '0.0.0.0';
+      }
+    }
+  }
+  /**
+   * Reveive the information from the client side JavaScript and verify
+   */
+  public function captchaFile(HookEvent $event) {
+    $filename = $this->filename;
+    if ($filename == '') {
+      $filename = 'captcha';
+    }
+    if (strpos($event->arguments[1], '/'.$filename.'/') === false) {
+       return;
+    }
+
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
+    header('Pragma: no-cache');
+
+    require_once(__DIR__.'/SlideCaptcha/SlideCaptchaClass.php');
+
+    if (isset($_GET['action'])) {
+      if ($_GET['action'] == 'get') {
+        $slideCaptcha = new \SlideCaptcha();
+        $slideCaptcha->build();
+      }
+      if ($_GET['action'] == 'check') {
+        $slideCaptcha = new \SlideCaptcha();
+        if (isset($_GET['x'])) {
+          $x = $_GET['x'];
+          if (isset($_SESSION['SlideCaptchaX'])) {
+            $SlideCaptchaX = $_SESSION['SlideCaptchaX'];
+          } else {
+            $SlideCaptchaX = 0;
+          }
+          if (ctype_digit(strval($x))) {
+            if (!ctype_digit($this->tolerance)) {
+              if ($this->logging == 1) {
+                wire('log')->save($this->className, 'Tolerance: '.$this->tolerance);
+              }
+              $this->tolerance = 3;
+            }
+            if ($slideCaptcha->check($x, $this->tolerance)) {
+              $_SESSION['SlideCaptchaOk'] = 'ok';
+              echo 'ok';
+              if ($this->logging == 1) {
+                wire('log')->save($this->className, 'Solved: '.$this->get_ip());
+              }
+            } else {
+              echo 'error';
+              if ($this->logging == 1) {
+                wire('log')->save($this->className, 'Unsolved: '.$this->get_ip());
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    exit(0);
+  }
+  /**
+   * Include JavaScript and CSS into the specified pages
+   */
+  public function addScripts($event) {
+		$page = $event->object; 
+		if ($page->template == 'admin') return;    
+
+    if ((isset($this->page_list)) && (is_array($this->page_list))) {
+      switch ($this->page_include) {
+        case 1:
+          if (!in_array($page->id, $this->page_list)) {
+            return;
+          }
+          break;
+        case 2:
+          if (in_array($page->id, $this->page_list)) {
+            return;
+          }
+          break;
+        case 3:
+          return;
+          break;
+      }
+    }
+
+    $css = '<link rel="stylesheet" type="text/css" href="'.$this->config()->urls->siteModules.$this->className.'/captcha.css?v='.self::moduleVersion.'" />';
+    $js = '<script src="'.$this->config()->urls->siteModules.$this->className.'/captcha.js?v='.self::moduleVersion.'"></script>';
+
+    $ret = $event->return;
+    $ret = str_replace('</body>', $js.'</body>', $ret);
+		$event->return = str_replace('</head>', $css.'</head>', $ret);
+	}
+}
