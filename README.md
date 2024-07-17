@@ -1,4 +1,4 @@
-Slide Captcha module for ProcessWire
+# Slide Captcha module for ProcessWire
 
 ![GitHub](https://img.shields.io/github/license/techcnet/SlideCaptcha)
 ![GitHub last commit](https://img.shields.io/github/last-commit/techcnet/SlideCaptcha)
@@ -120,7 +120,7 @@ The settings for this module are located in the menu Modules=>Configure=>Captcha
 
 !["Screenshot"](https://tech-c.net/site/assets/files/1235/settings.jpg)
 
-Filename
+### Filename
 Filename which must not exist in the root directory and also not represents a page. The default filename resolves in to the following URL: https://domain.tld/captcha/. This URL receives the information from the client side JavaScript.
 
 Tolerance
