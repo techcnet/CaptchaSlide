@@ -37,7 +37,7 @@ class CaptchaSlideConfig extends ModuleConfig {
     $field = $this->modules->get('InputfieldText');
     $field->name = 'filename';
     $field->label = __('Filename');
-    $field->description = __(sprintf('Filename which must not exist in the root directory and also not represents a page. The current filename resolves in to the following URL: %s. This URL receives the information from the client side JavaScript.', wire('pages')->get('/')->httpUrl.$this->filename.'/'));
+    $field->description = __('Filename which must not exist in the root directory and also not represents a page. The filename must be also changed in the captcha.js. The resolving URL receives the information from the client side JavaScript.');
     $fields->add($field);
 
     $field = $this->modules->get('InputfieldText');
